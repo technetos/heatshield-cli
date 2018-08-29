@@ -1,0 +1,7 @@
+[package]
+name = "heatsheild-cli"
+version = "0.1.0"
+authors = ["technetos <mrgould93@gmail.com>"]
+
+[dependencies]
+heatshield = { git = "https://github.com/technetos/heatshield.git", features = ["gensalt"] }
