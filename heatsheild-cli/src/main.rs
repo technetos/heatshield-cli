@@ -12,7 +12,16 @@ use heatshield::{
     controller::ResourceController,
     salt::controller::SaltController,
     validate::Validator,
+    client::{controller::ClientController, model::Client}
 };
+
+#[derive(StructOpt, Debug)]
+struct AddClient {
+  #[structopt(short = "n")]
+  name: String,
+  #[structopt(short = "e")]
+  email: String,
+}
 
 #[derive(StructOpt, Debug)]
 struct AddUser {
@@ -29,14 +38,16 @@ struct AddUser {
 enum Opt {
     #[structopt(name = "gensalt", alias = "gs")]
     GenSalt,
-    #[structopt(name = "adduser", raw(aliases = r#"&["add"]"#))]
+    #[structopt(name = "adduser", alias = "au")]
     AddUser(AddUser),
+    #[structopt(name = "addclient", alias = "ac")]
+    AddClient(AddClient),
 }
 
 main!(|args: Opt| match args {
   Opt::GenSalt => { SaltController.create_salt(); }
   Opt::AddUser(AddUser { username, password, email }) => {
-    let account = Account {
+    let mut account = Account {
         username: Some(username),
         password: Some(password),
         email: Some(email),
@@ -44,7 +55,18 @@ main!(|args: Opt| match args {
     };
 
     account.validate().expect("Invalid account");
+    account.hash_password();
     AccountController.create(&account).expect("Unable to create account"); 
+
     println!("Account created successfully!");
+  }
+  Opt::AddClient(AddClient { name, email }) => {
+    let client = ClientController.create(&Client {
+        uuid: Uuid::new_v4(),
+        name: Some(name),
+        email: Some(email),
+    }).expect("Invalid client");
+
+    println!("Client created successfully! {}", client.client.uuid);
   }
 });
